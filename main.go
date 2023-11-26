@@ -10,8 +10,8 @@ func main() {
      
     // create a database object which can be used
     // to connect with database.
-    db, err := sql.Open("mysql", "root:Th@o2082003@tcp(0.0.0.0:3306)/sls_database")
-     
+    connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/sls_database", DBUsername, DBPassword, DBHost, DBPort)
+    db, err := sql.Open("mysql", connectionString)
     // handle error, if any.
     if err != nil {
         panic(err)
