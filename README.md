@@ -14,11 +14,10 @@ Create a `config.go` file with this content:
 package main
 
 const (
-    DBUsername = "root"
-    DBPassword = "your_password"
+    DBUsername = "root" // Change to your database username
+    DBPassword = "your_password"       // Change to your database password
     DBHost     = "0.0.0.0"
     DBPort     = "3306"
-    DBName     = "sls_database"
 )
 ```
 
@@ -38,8 +37,9 @@ Compile the code.
 go build
 ```
 
-Excute the program.
+Runs the app in the development mode.
 
 ```bash
 ./sls
 ```
+Open http://localhost:8080 to view it in your browser.

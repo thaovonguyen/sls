@@ -35,6 +35,18 @@ BEGIN
     SELECT authentication_result AS result, user_id, user_type;
 END //
 
-
+CREATE PROCEDURE insert_borrow(
+    IN sid INT,
+    IN uid INT,
+    IN did INT,
+    IN pid INT
+)
+BEGIN
+    IF sid IS NULL OR uid IS NULL OR did IS NULL OR pid IS NULL THEN
+		SET insert_result = 'Insert failed';
+	ELSE
+		--
+    END IF;
+END //
 
 DELIMITER ;
