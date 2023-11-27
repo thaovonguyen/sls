@@ -38,8 +38,9 @@ Compile the code.
 go build
 ```
 
-Excute the program.
+Runs the app in the development mode.
 
 ```bash
 ./sls
 ```
+Open http://localhost:8080 to view it in your browser.
