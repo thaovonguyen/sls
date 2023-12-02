@@ -24,6 +24,26 @@ INSERT INTO luser VALUES
 (10, 'Hòa', 'Đinh Thị', 'Căn cước công dân', '012345678901', '/path/to/0b8c3d2a1', '707 Đường UVW, Quận 10, TP.HCM', '1998-06-11', 'Công ty UVW', '0977777777', 'hoa.dinh@gmail.com', 'Bình thường', 0, '2022-08-28'),
 (11, 'Quân', 'Trương Minh', 'Căn cước công dân', '123012345678', '/path/to/1e5f3c8b0', '808 Đường XYZ, Quận 11, TP.HCM', '1989-04-30', 'Công ty XYZ', '0900000000', 'quan.truong@gmail.com', 'Bình thường', 2, '2023-06-22');
 
+INSERT INTO login_info VALUES
+('ngoctran', '123', 1, null),
+('anhnguyen', '123', 2, null),
+('linhle', '123', 3, null),
+('phambinh', '123', 4, null),
+('vothang', '123', 5, null),
+('tulam', '123', 6, null),
+('nguyenhieu', '123', 7, null),
+('hale', '123', 8, null),
+('ductran', '123', 9, null),
+('hoadinh', '123', 10, null),
+('quantruong', '123', 11, null),
+('annguyen', '123', null, 1),
+('binhtran', '123', null, 2),
+('cuongle', '123', null, 3),
+('ngocdang', '123', null, 4),
+('quocnguyen', '123', null, 5),
+('hoatrinh', '123', null, 6),
+('yenbui', '123', null, 7);
+
 INSERT INTO printing_import VALUES
 (1, '2022-04-06', 1),
 (2, '2022-09-10', 1),
@@ -112,15 +132,15 @@ INSERT INTO printing VALUES
 (10, 1, 'Có sẵn', 'Công ty TUV', 0, 'mất bìa', 2), -- Xong
 (10, 2, 'Có sẵn', 'Mua', 17000, 'nguyên vẹn', 3);
 
-INSERT INTO reserve_record VALUES
-(1, '2023-11-23', 'Hoàn tất', 1, 4, 9, 4);
-
 INSERT INTO borrow_record VALUES
 (1, '2023-11-24', null, null, 'Quá hạn', 5, 4, 9, 4),
 (2, '2023-03-23', '2023-04-05', null, 'Hoàn tất', 1, 8, 10, 1),
 (3, '2023-01-23', '2023-02-25', 1, 'Hoàn tất', 1, 1, 8, 3),
 (4, '2023-04-09', '2023-05-18', 2, 'Hoàn tất', 3, 7, 7, 2),
 (5, '2023-09-12', '2023-11-01', null, 'Trả sau hạn', 1, 11, 7, 2);
+
+INSERT INTO reserve_record VALUES
+(1, '2023-11-23', 'Hoàn tất', 1, 4, 9, 4);
 
 INSERT INTO on_site_record VALUES
 (1, '2023-08-28 12:30:00', '2023-08-28 15:02:00', 'Hoàn tất', 6, 10, 9, 2),

@@ -25,62 +25,73 @@ CREATE TABLE staff (
     email varchar(255) not null,
     start_date date,
     end_date date,
-    bid int(3) not null
+    bid int(3) not null,
+    FOREIGN KEY (bid) REFERENCES branch(bid)
 );
 
 CREATE TABLE manage (
 	sid int(5) primary key,
     start_date date,
     end_date date,
-    bid int(3)
+    bid int(3),
+    FOREIGN KEY (bid) REFERENCES branch(bid),
+    FOREIGN KEY (sid) REFERENCES staff(sid)
 );
 
 CREATE TABLE document (
-	did varchar(7) primary key,
+	did int(7) primary key,
     dname varchar(255) not null,
     abstract varchar(255),
     publisher varchar(100),
     cover_cost int(5) not null
 );
 
+CREATE TABLE printing_import (
+	iid int(5) primary key,
+    idate date,
+    bid int(2) not null,
+    FOREIGN KEY (bid) REFERENCES branch(bid)
+);
+
 CREATE TABLE printing (
-	did varchar(7),
+	did int(7),
     pid int(2),
 	dstatus enum('Có sẵn','Đã mượn','Đặt trước','Chỉ đọc', 'Thất lạc') not null,
     dsource varchar (255),
     cost int (5),
     dcondition varchar(255),
-    iid varchar (6) not null,
-    primary key (did, pid)
-);
-
-CREATE TABLE printing_import (
-	iid int(5) primary key,
-    idate date,
-    bid int(2) not null
+    iid int (5) not null,
+    primary key (did, pid),
+    FOREIGN KEY (iid) REFERENCES printing_import(iid),
+    FOREIGN KEY (did) REFERENCES document(did)
 );
 
 CREATE TABLE import_manage (
 	iid int(5),
     sid int(5),
-    primary key (iid, sid)
+    primary key (iid, sid),
+    FOREIGN KEY (iid) REFERENCES printing_import(iid),
+    FOREIGN KEY (sid) REFERENCES staff(sid)
 );
 
 CREATE TABLE book (
-	did varchar(7) primary key,
-    btype enum ('Văn học', 'Kinh tế', 'Kỹ năng mềm', 'Nuôi dạy trẻ', 'Thiếu nhi', 'Tự truyện', 'Sách tham khảo', 'Ngôn ngữ', 'Khác')
+	did int(7) primary key,
+    btype enum ('Văn học', 'Kinh tế', 'Kỹ năng mềm', 'Nuôi dạy trẻ', 'Thiếu nhi', 'Tự truyện', 'Sách tham khảo', 'Ngôn ngữ', 'Khác'),
+    FOREIGN KEY (did) REFERENCES document(did)
 );
 
 CREATE TABLE book_author (
-	did varchar(7),
+	did int(7),
     author_name varchar(100),
-    primary key (did, author_name)
+    primary key (did, author_name),
+    FOREIGN KEY (did) REFERENCES book(did)
 );
 
 CREATE TABLE magazine (
-	did varchar(7) primary key,
+	did int(7) primary key,
     volumn int(5) not null,
-    highlight varchar(255)
+    highlight varchar(255),
+    FOREIGN KEY (did) REFERENCES document(did)
 );
 
 CREATE TABLE luser(
@@ -101,53 +112,74 @@ CREATE TABLE luser(
     CHECK (warning_time <= 3 && warning_time >= 0)
 );
 
+CREATE TABLE login_info (
+	username varchar(255) primary key,
+    password varchar(255) not null,
+    uid int(5),
+    sid int(5),
+    FOREIGN KEY (sid) REFERENCES staff(sid),
+    FOREIGN KEY (uid) REFERENCES luser(uid)
+);
+
 CREATE TABLE borrow_record (
-	rid varchar(9) primary key,
+	rid int(9) primary key,
     start_date datetime not null,
     return_date datetime,
     extend_time int(1),
     bstatus enum('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn') not null,
     sid int(5) not null,
     uid int(5) not null,
-    did varchar(7) not null,
+    did int(7) not null,
     pid int(2) not null,
-    CHECK (extend_time <= 2 && extend_time >= 0)
+    CHECK (extend_time <= 2 && extend_time >= 0),
+    FOREIGN KEY (sid) REFERENCES staff(sid),
+    FOREIGN KEY (uid) REFERENCES luser(uid),
+    FOREIGN KEY (did, pid) REFERENCES printing(did, pid)
 );
 
 CREATE TABLE reserve_record (
-	rid varchar(9) primary key,
+	rid int(9) primary key,
     rdate datetime not null,
     rstatus enum('Thành công', 'Hoàn tất', 'Đã hủy', 'Đã hoàn tiền', 'Quá hạn') not null,
-    borrow_rid varchar(9),
+    borrow_rid int(9),
     uid int(5) not null,
-    did varchar(7) not null,
-    pid int(2) not null
+    did int(7) not null,
+    pid int(2) not null,
+    FOREIGN KEY (uid) REFERENCES luser(uid),
+    FOREIGN KEY (did, pid) REFERENCES printing(did, pid),
+    FOREIGN KEY (borrow_rid) REFERENCES borrow_record(rid)
 );
 
 CREATE TABLE on_site_record (
-	rid varchar(9) primary key,
+	rid int(9) primary key,
     start_date datetime not null,
     return_date datetime,
     rstatus enum('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn') not null,
     sid int(5) not null,
     uid int(5) not null,
-    did varchar(7) not null,
-    pid int(2) not null
+    did int(7) not null,
+    pid int(2) not null,
+    FOREIGN KEY (sid) REFERENCES staff(sid),
+    FOREIGN KEY (uid) REFERENCES luser(uid),
+    FOREIGN KEY (did, pid) REFERENCES printing(did, pid)
 );
 
 CREATE TABLE fine_invoice (
-	fid varchar(8) primary key,
+	fid int(8) primary key,
     fdate date not null,
     fine int(6) not null,
     reason enum('Làm mất sách', 'Hủy đặt trước', 'Trễ hạn trả sách', 'Làm hư sách', 'Quá hạn và làm hỏng') not null,
     fstatus enum('Chưa thanh toán', 'Đã thanh toán', 'Đã gạch nợ') not null,
-    on_site_rid varchar(9),
-    borrow_rid varchar(9),
-    reserve_rid varchar(9)
+    on_site_rid int(9),
+    borrow_rid int(9),
+    reserve_rid int(9),
+    FOREIGN KEY (on_site_rid) REFERENCES on_site_record(rid),
+    FOREIGN KEY (borrow_rid) REFERENCES borrow_record(rid),
+    FOREIGN KEY (reserve_rid) REFERENCES reserve_record(rid)
 );
 
 CREATE TABLE report (
-	did varchar(7) primary key,
+	did int(7) primary key,
     nation enum(
     'Afghanistan',
     'Albania',
@@ -346,5 +378,6 @@ CREATE TABLE report (
     'Zambia',
     'Zimbabwe'
 ),
-    field varchar(100)
+    field varchar(100),
+    FOREIGN KEY (did) REFERENCES document(did)
 );
