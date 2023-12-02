@@ -16,7 +16,7 @@ function App() {
       ) : (
         <div className="view">
           <div className="side-bar">
-            <SideBar />
+            <SideBar setJwtToken={setJwtToken} />
           </div>
           <div className="content">
             {role === "user" ? <UserView /> : <LibrarianView />}
