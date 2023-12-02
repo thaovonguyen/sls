@@ -2,6 +2,13 @@
 
 231 CO2013 - DATABASE SYSTEM
 
+# VERY IMPORTANT NOTE
+
+- Before getting data from the database, make sure the `model` for that data is define in the **_"backend/internal/models"_** folder.
+- Any task that needs database communication is treated as a `function` of `MySQLDBRepo struct` in the **_"backend/internal/repository/dbrepo/mysql_dbrepo.go"_** file, then the function needs adding to the `DatabaseRepo interface` in the **_"backend/internal/repository/repository.go"_**.
+- `routes.go` file is for routing based on the _url_ and _HTTP methods_, each route need a _url_ string and a _handler_ for handling logic on that route (process data from or to the frontend/database).
+- `handlers.go` file is where to put those handlers.
+
 ## Available Scripts
 
 ### Frontend
@@ -34,7 +41,7 @@ cd backend
 
 To connect to the database, follow these steps:
 
-Create a `config.go` file with this content:
+Create a `config.go` file in the /cmd/api folder with this content:
 
 ```go
 // config.go
@@ -59,16 +66,8 @@ Install the mysql driver.
 go get -u github.com/go-sql-driver/mysql
 ```
 
-Compile the code.
+Run the server
 
 ```bash
-go build
+go run ./cmd/api
 ```
-
-Runs the app in the development mode.
-
-```bash
-./sls
-```
-
-Open http://localhost:8080 to view it in your browser.
