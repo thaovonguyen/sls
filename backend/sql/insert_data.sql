@@ -132,15 +132,15 @@ INSERT INTO printing VALUES
 (10, 1, 'Có sẵn', 'Công ty TUV', 0, 'mất bìa', 2), -- Xong
 (10, 2, 'Có sẵn', 'Mua', 17000, 'nguyên vẹn', 3);
 
-INSERT INTO reserve_record VALUES
-(1, '2023-11-23', 'Hoàn tất', 1, 4, 9, 4);
-
 INSERT INTO borrow_record VALUES
 (1, '2023-11-24', null, null, 'Quá hạn', 5, 4, 9, 4),
 (2, '2023-03-23', '2023-04-05', null, 'Hoàn tất', 1, 8, 10, 1),
 (3, '2023-01-23', '2023-02-25', 1, 'Hoàn tất', 1, 1, 8, 3),
 (4, '2023-04-09', '2023-05-18', 2, 'Hoàn tất', 3, 7, 7, 2),
 (5, '2023-09-12', '2023-11-01', null, 'Trả sau hạn', 1, 11, 7, 2);
+
+INSERT INTO reserve_record VALUES
+(1, '2023-11-23', 'Hoàn tất', 1, 4, 9, 4);
 
 INSERT INTO on_site_record VALUES
 (1, '2023-08-28 12:30:00', '2023-08-28 15:02:00', 'Hoàn tất', 6, 10, 9, 2),
