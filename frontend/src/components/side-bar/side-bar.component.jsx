@@ -1,9 +1,11 @@
 import React from "react";
 
 import "./side-bar.styles.css";
+import { useNavigate } from "react-router";
 
 const SideBar = (props) => {
-  const { setJwtToken } = props;
+  const navigate = useNavigate();
+  const { setUser } = props;
   return (
     <div className="d-flex flex-column side-bar-container">
       <div className="side-bar-top">
@@ -17,16 +19,15 @@ const SideBar = (props) => {
         <hr />
         <h1
           className="signout-btn text-center mt-3"
-          onClick={() => setJwtToken("")}
+          onClick={() => {
+            setUser({});
+            navigate("/");
+          }}
         >
           Sign out
         </h1>
       </div>
     </div>
-
-    //       <a href="#" className="nav-link link-dark">
-    //         Customers
-    //       </a>
   );
 };
 
