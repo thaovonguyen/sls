@@ -35,6 +35,24 @@ BEGIN
     SELECT authentication_result AS result, user_id, user_type;
 END //
 
+
+-- Các Lê
+
+CREATE PROCEDURE GetUserInformation(IN in_user_type VARCHAR(10), IN in_uid INT)
+BEGIN
+    
+    IF in_user_type = 'staff' THEN
+        -- Retrieve user information from the staff table
+        SELECT *
+        FROM staff
+        WHERE sid = in_uid;
+    ELSE 
+        SELECT *
+        FROM luser
+        WHERE uid = in_uid;
+    END IF;
+END //
+
 -- CREATE PROCEDURE insert_borrow(
 --     IN sid INT,
 --     IN uid INT,
