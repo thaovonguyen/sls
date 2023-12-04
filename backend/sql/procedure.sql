@@ -9,14 +9,19 @@ BEGIN
     DECLARE authentication_result VARCHAR(255);
     
     -- Retrieve user information based on the provided username
-    SELECT sid, uid INTO out_sid, out_uid
+    SELECT sid, uid, password INTO out_sid, out_uid, out_password
     FROM login_info
-    WHERE login_info.username = in_username AND login_info.password = in_password;
+    WHERE login_info.username = in_username;
     
     -- Check if the provided password matches the stored hashed password
-    IF out_sid IS NOT NULL OR out_uid IS NOT NULL THEN
+    
+    IF out_password IS NULL THEN
+		SET authentication_result = 'Username không tồn tại';
+	ELSEIF out_password != in_password THEN
+		SET authentication_result = 'Password không chính xác';
+    ELSE
         -- Authentication successful
-        SET authentication_result = 'Authentication successful';
+        SET authentication_result = 'Đăng nhập thành công';
         IF out_sid IS NOT NULL THEN 
 			SET user_type = 'staff';
             SET user_id = out_sid;
@@ -24,11 +29,6 @@ BEGIN
 			SET user_type = 'client';
             SET user_id = out_uid;
         END IF;
-    ELSE
-        -- Authentication failed
-        SET authentication_result = 'Authentication failed';
-        SET user_id = NULL;
-        SET user_type = NULL;
     END IF;
     
     -- Return the results
