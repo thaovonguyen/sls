@@ -56,7 +56,7 @@ const SignIn = (props) => {
   return (
     <div className="text-center sign-in">
       <form className="form-signin" onSubmit={handleSubmit}>
-        <img src="./sls-icon.png" alt="literature-1" className="mb-4" />
+        <img src="/sls-icon.png" alt="literature-1" className="mb-4" />
         <h1 className="h3 mb-3 font-weight-normal">Please sign in</h1>
         <label className="sr-only">Email address</label>
         <input
@@ -65,7 +65,7 @@ const SignIn = (props) => {
           onChange={handleChange}
           value={text}
           className="form-control"
-          placeholder="Email address"
+          placeholder="Username"
           required
           autoFocus
         ></input>

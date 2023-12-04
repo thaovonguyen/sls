@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import SignIn from "./components/sign-in/sign-in.component";
 import LibrarianView from "./components/librarian-view/librarian-view.component";
 import UserView from "./components/user-view/user-view.component";
+import { Link } from "react-router-dom";
 import SideBar from "./components/side-bar/side-bar.component";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import "./App.css";
+import ContentPage from "./components/content-page/content-page.component";
 
 function App() {
   // const [login, setLogin] = useState(false);
@@ -17,11 +19,20 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="view">
-              <div className="side-bar">
-                <SideBar setUser={setUser} />
-              </div>
-              <div className="content">
+            user.id ? (
+              <div className="view">
+                <div className="side-bar border-end" id="sidebar-wrapper">
+                  <SideBar setUser={setUser}>
+                    <Link
+                      className="list-group-item list-group-item-action list-group-item-light p-3 side-bar-link"
+                      to=""
+                    ></Link>
+                  </SideBar>
+                </div>
+                <div className="content">
+                  <ContentPage />
+                </div>
+                {/* <div className="content">
                 {user.role === "client" ? (
                   <UserView />
                 ) : user.role === "staff" ? (
@@ -29,8 +40,11 @@ function App() {
                 ) : (
                   <Navigate to="/login" />
                 )}
+              </div> */}
               </div>
-            </div>
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
       </Routes>
