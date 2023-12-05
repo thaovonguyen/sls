@@ -11,21 +11,21 @@ CREATE TABLE branch (
     address2 varchar(100) not null,
     address3 varchar(100) not null,
     address4 varchar(100) not null,
-    pos_url varchar(100)
+    pos_url varchar(100) not null -- thêm not null
 );
 
 CREATE TABLE staff (
-	sid int(5) primary key,
-    fname varchar(255) not null,
+	sid int(5) auto_increment primary key,	-- thêm auto_increment
+    fname varchar(255) not null,			
     lname varchar(255) not null,
     sex enum('Nam','Nữ') not null,
-    cic varchar(12) not null,
-    bdate date,
+    cic varchar(12) not null,		
+    bdate date,						 
     phone varchar(10) not null,
     email varchar(255) not null,
-    start_date date,
-    end_date date,
-    bid int(3) not null,
+    start_date date,						-- thêm not null
+    end_date date,							
+    bid int(3) not null,					
     FOREIGN KEY (bid) REFERENCES branch(bid)
 );
 
@@ -39,15 +39,15 @@ CREATE TABLE manage (
 );
 
 CREATE TABLE document (
-	did int(7) primary key,
-    dname varchar(255) not null,
+	did int(7) auto_increment primary key, 	-- thêm auto_increment
+    dname varchar(255) not null,			
     abstract varchar(255),
     publisher varchar(100),
     cover_cost int(5) not null
 );
 
 CREATE TABLE printing_import (
-	iid int(5) primary key,
+	iid int(5) primary key,					
     idate date,
     bid int(2) not null,
     FOREIGN KEY (bid) REFERENCES branch(bid)
@@ -123,14 +123,14 @@ CREATE TABLE login_info (
 
 CREATE TABLE borrow_record (
 	rid int(9) primary key,
-    start_date datetime not null,
+    start_date datetime not null,	-- CURDATE()
     return_date datetime,
-    extend_time int(1),
+    extend_time int(1),				-- default 0
     bstatus enum('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn') not null,
-    sid int(5) not null,
-    uid int(5) not null,
-    did int(7) not null,
-    pid int(2) not null,
+    sid int(5) not null, -- Mã NV
+    uid int(5) not null, -- Mã Ban Đọc
+    did int(7) not null, -- Mã TL
+    pid int(2) not null, -- Mã Bản in
     CHECK (extend_time <= 2 && extend_time >= 0),
     FOREIGN KEY (sid) REFERENCES staff(sid),
     FOREIGN KEY (uid) REFERENCES luser(uid),
@@ -165,14 +165,14 @@ CREATE TABLE on_site_record (
 );
 
 CREATE TABLE fine_invoice (
-	fid int(8) primary key,
-    fdate date not null,
-    fine int(6) not null,
+	fid int(8) primary key, -- Mã HĐ
+    fdate date not null,	-- Ngày phạt
+    fine int(6) not null,	-- Tiền phạt
     reason enum('Làm mất sách', 'Hủy đặt trước', 'Trễ hạn trả sách', 'Làm hư sách', 'Quá hạn và làm hỏng') not null,
     fstatus enum('Chưa thanh toán', 'Đã thanh toán', 'Đã gạch nợ') not null,
-    on_site_rid int(9),
-    borrow_rid int(9),
-    reserve_rid int(9),
+    on_site_rid int(9),		-- Mã phiếu Đọc Tại Chỗ
+    borrow_rid int(9),		-- Mã phiếu Mượn Về Nhà
+    reserve_rid int(9),		-- Mã phiếu Đặt trước
     FOREIGN KEY (on_site_rid) REFERENCES on_site_record(rid),
     FOREIGN KEY (borrow_rid) REFERENCES borrow_record(rid),
     FOREIGN KEY (reserve_rid) REFERENCES reserve_record(rid)
