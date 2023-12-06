@@ -1,5 +1,5 @@
 INSERT INTO branch VALUES
-(1, 'Ta Quang Buu', '200 Ta Quang Buu', 'Linh Trung', 'Thủ Đức', 'Hồ Chí Minh', 'https://maps.app.goo.gl/7Zz9JhjzUhNQXYbV6'),
+(1, 'Tạ Quang Bửu', '200 Tạ Quang Bửu', 'Linh Trung', 'Thủ Đức', 'Hồ Chí Minh', 'https://maps.app.goo.gl/7Zz9JhjzUhNQXYbV6'),
 (2, 'Lý Thường Kiệt', '90 Lý Thường Kiệt', '7', '10', 'Hồ Chí Minh', 'https://maps.app.goo.gl/KV7vTN7XB7JACCRz6');
 
 INSERT INTO staff VALUES
@@ -44,7 +44,8 @@ INSERT INTO login_info VALUES
 ('hoatrinh', '123', null, 6),
 ('yenbui', '123', null, 7);
 
-INSERT INTO printing_import VALUES
+INSERT INTO printing_import (iid, idate, bid)
+VALUES
 (1, '2022-04-06', 1),
 (2, '2022-09-10', 1),
 (3, '2022-05-08', 2);
@@ -132,14 +133,16 @@ INSERT INTO printing VALUES
 (10, 1, 'Có sẵn', 'Công ty TUV', 0, 'mất bìa', 2), -- Xong
 (10, 2, 'Có sẵn', 'Mua', 17000, 'nguyên vẹn', 3);
 
-INSERT INTO borrow_record VALUES
-(1, '2023-11-24', null, null, 'Quá hạn', 5, 4, 9, 4),
-(2, '2023-03-23', '2023-04-05', null, 'Hoàn tất', 1, 8, 10, 1),
+INSERT INTO borrow_record (rid, start_date, return_date, extend_time, bstatus, sid, uid, did, pid)
+VALUES
+(1, '2023-11-24', null, 0, 'Quá hạn', 5, 4, 9, 4),
+(2, '2023-03-23', '2023-04-05', 0, 'Hoàn tất', 1, 8, 10, 1),
 (3, '2023-01-23', '2023-02-25', 1, 'Hoàn tất', 1, 1, 8, 3),
 (4, '2023-04-09', '2023-05-18', 2, 'Hoàn tất', 3, 7, 7, 2),
-(5, '2023-09-12', '2023-11-01', null, 'Trả sau hạn', 1, 11, 7, 2);
+(5, '2023-09-12', '2023-11-01', 0, 'Trả sau hạn', 1, 11, 7, 2);
 
-INSERT INTO reserve_record VALUES
+INSERT INTO reserve_record (rid, rdate, rstatus, borrow_rid, uid, did, pid)
+VALUES
 (1, '2023-11-23', 'Hoàn tất', 1, 4, 9, 4);
 
 INSERT INTO on_site_record VALUES
