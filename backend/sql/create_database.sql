@@ -11,27 +11,27 @@ CREATE TABLE branch (
     address2 varchar(100) not null,
     address3 varchar(100) not null,
     address4 varchar(100) not null,
-    pos_url varchar(100) not null -- thêm not null
+    pos_url varchar(100) not null
 );
 
 CREATE TABLE staff (
-	sid int(5) auto_increment primary key,	-- thêm auto_increment
-    fname varchar(255) not null,			
+	sid int(5) auto_increment primary key,
+    fname varchar(255) not null,
     lname varchar(255) not null,
     sex enum('Nam','Nữ') not null,
-    cic varchar(12) not null,		
-    bdate date,						 
+    cic varchar(12) not null,
+    bdate date,
     phone varchar(10) not null,
     email varchar(255) not null,
-    start_date date,						-- thêm not null
-    end_date date,							
-    bid int(3) not null,					
+    start_date date not null,
+    end_date date,
+    bid int(3) not null,
     FOREIGN KEY (bid) REFERENCES branch(bid)
 );
 
 CREATE TABLE manage (
 	sid int(5) primary key,
-    start_date date,
+    start_date date not null,
     end_date date,
     bid int(3),
     FOREIGN KEY (bid) REFERENCES branch(bid),
@@ -39,17 +39,19 @@ CREATE TABLE manage (
 );
 
 CREATE TABLE document (
-	did int(7) auto_increment primary key, 	-- thêm auto_increment
-    dname varchar(255) not null,			
+	did int(7) auto_increment primary key,
+    dname varchar(255) not null,
     abstract varchar(255),
     publisher varchar(100),
     cover_cost int(5) not null
 );
 
 CREATE TABLE printing_import (
-	iid int(5) primary key,					
-    idate date,
+	iid int(5) auto_increment primary key,
+    idate date not null,
     bid int(2) not null,
+    cost int default 0,
+    amount int default 0,
     FOREIGN KEY (bid) REFERENCES branch(bid)
 );
 
@@ -58,7 +60,7 @@ CREATE TABLE printing (
     pid int(2),
 	dstatus enum('Có sẵn','Đã mượn','Đặt trước','Chỉ đọc', 'Thất lạc') not null,
     dsource varchar (255),
-    cost int (5),
+    cost int (5) not null,
     dcondition varchar(255),
     iid int (5) not null,
     primary key (did, pid),
@@ -95,7 +97,7 @@ CREATE TABLE magazine (
 );
 
 CREATE TABLE luser(
-	uid int(5) primary key,
+	uid int(5) auto_increment primary key,
     fname varchar(255) not null,
     lname varchar(255) not null,
     paper_type enum('Căn cước công dân', 'Thẻ học sinh') not null,
@@ -107,51 +109,56 @@ CREATE TABLE luser(
     phone varchar(10) not null,
     email varchar(255),
     ustatus enum('Hạn chế', 'Bình thường', 'Khóa') not null,
-    warning_time int(1),
+    warning_time int(1) default 0,
     register_date date not null,
-    CHECK (warning_time <= 3 && warning_time >= 0)
+    CHECK (warning_time <= 3 AND warning_time >= 0)
 );
 
 CREATE TABLE login_info (
 	username varchar(255) primary key,
     password varchar(255) not null,
-    uid int(5),
-    sid int(5),
+    uid int(5) unique,
+    sid int(5) unique,
     FOREIGN KEY (sid) REFERENCES staff(sid),
-    FOREIGN KEY (uid) REFERENCES luser(uid)
+    FOREIGN KEY (uid) REFERENCES luser(uid),
+    CHECK (sid is null xor uid is null)
 );
 
 CREATE TABLE borrow_record (
-	rid int(9) primary key,
-    start_date datetime not null,	-- CURDATE()
-    return_date datetime,
-    extend_time int(1),				-- default 0
+	rid int(9) auto_increment primary key,
+    start_date date not null,
+    expected_return_date date,
+    return_date date,
+    extend_time int(1) default 0,
     bstatus enum('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn') not null,
-    sid int(5) not null, -- Mã NV
-    uid int(5) not null, -- Mã Ban Đọc
-    did int(7) not null, -- Mã TL
-    pid int(2) not null, -- Mã Bản in
-    CHECK (extend_time <= 2 && extend_time >= 0),
+    sid int(5) not null,
+    uid int(5) not null,
+    did int(7) not null,
+    pid int(2) not null,
+    deposit int(6) default 0,
+    return_fund int(6) default 0,
+    CHECK (extend_time <= 2 AND extend_time >= 0),
     FOREIGN KEY (sid) REFERENCES staff(sid),
     FOREIGN KEY (uid) REFERENCES luser(uid),
     FOREIGN KEY (did, pid) REFERENCES printing(did, pid)
 );
 
 CREATE TABLE reserve_record (
-	rid int(9) primary key,
-    rdate datetime not null,
+	rid int(9) auto_increment primary key,
+    rdate date not null,
     rstatus enum('Thành công', 'Hoàn tất', 'Đã hủy', 'Đã hoàn tiền', 'Quá hạn') not null,
     borrow_rid int(9),
     uid int(5) not null,
     did int(7) not null,
     pid int(2) not null,
+    deposit int(6) default 0,
     FOREIGN KEY (uid) REFERENCES luser(uid),
     FOREIGN KEY (did, pid) REFERENCES printing(did, pid),
     FOREIGN KEY (borrow_rid) REFERENCES borrow_record(rid)
 );
 
 CREATE TABLE on_site_record (
-	rid int(9) primary key,
+	rid int(9) auto_increment primary key,
     start_date datetime not null,
     return_date datetime,
     rstatus enum('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn') not null,
@@ -159,23 +166,26 @@ CREATE TABLE on_site_record (
     uid int(5) not null,
     did int(7) not null,
     pid int(2) not null,
+    CHECK (HOUR(start_date) >= 8 AND HOUR(start_date) <= 18 AND HOUR(return_date) >= 8 AND HOUR(start_date) <= 19),
+    FOREIGN KEY (sid) REFERENCES staff(sid),
     FOREIGN KEY (sid) REFERENCES staff(sid),
     FOREIGN KEY (uid) REFERENCES luser(uid),
     FOREIGN KEY (did, pid) REFERENCES printing(did, pid)
 );
 
 CREATE TABLE fine_invoice (
-	fid int(8) primary key, -- Mã HĐ
-    fdate date not null,	-- Ngày phạt
-    fine int(6) not null,	-- Tiền phạt
+	fid int(8) auto_increment primary key,
+    fdate date not null,
+    fine int(6) not null,
     reason enum('Làm mất sách', 'Hủy đặt trước', 'Trễ hạn trả sách', 'Làm hư sách', 'Quá hạn và làm hỏng') not null,
     fstatus enum('Chưa thanh toán', 'Đã thanh toán', 'Đã gạch nợ') not null,
-    on_site_rid int(9),		-- Mã phiếu Đọc Tại Chỗ
-    borrow_rid int(9),		-- Mã phiếu Mượn Về Nhà
-    reserve_rid int(9),		-- Mã phiếu Đặt trước
+    on_site_rid int(9),
+    borrow_rid int(9),
+    reserve_rid int(9),
     FOREIGN KEY (on_site_rid) REFERENCES on_site_record(rid),
     FOREIGN KEY (borrow_rid) REFERENCES borrow_record(rid),
-    FOREIGN KEY (reserve_rid) REFERENCES reserve_record(rid)
+    FOREIGN KEY (reserve_rid) REFERENCES reserve_record(rid),
+    CHECK (on_site_rid is not null xor borrow_rid is not null xor reserve_rid is not null)
 );
 
 CREATE TABLE report (
@@ -381,3 +391,7 @@ CREATE TABLE report (
     field varchar(100),
     FOREIGN KEY (did) REFERENCES document(did)
 );
+
+CREATE INDEX book_name ON document (dname);
+
+CREATE INDEX printing_find ON printing (did, pid);
