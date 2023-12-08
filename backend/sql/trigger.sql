@@ -1,5 +1,10 @@
 DELIMITER //
 
+-- ===================================== DUY ANH ====================================
+
+-- TRIGGER: Sau khi thêm hoá đơn phạt, kiểm tra nếu số lần cảnh cáo >= 3
+-- thì chuyển trạng thái bạn đọc tương ứng thành 'Khoá'
+
 CREATE TRIGGER after_fine_invoice_insert
 AFTER INSERT ON fine_invoice
 FOR EACH ROW
@@ -37,7 +42,29 @@ BEGIN
     END IF;
 END //
 
-DELIMITER //
+-- TRIGGER: Sau khi thêm phiếu mượn về nhà, chuyển trạng thái bản in thành 'Đã mượn'
+-- và cập nhật trạng thái phiếu đặt trước liên kết với nó thành 'Hoàn tất'
+
+CREATE TRIGGER after_insert_borrow_record
+AFTER INSERT ON borrow_record
+FOR EACH ROW
+BEGIN
+    -- Cập nhật trạng thái của bản in trong bảng printing
+    UPDATE printing
+    SET dstatus = 'Đã mượn'
+    WHERE did = NEW.did AND pid = NEW.pid;
+
+    -- Cập nhật trạng thái của phiếu đặt trước liên quan trong bảng reserve_record
+    UPDATE reserve_record
+    SET rstatus = 'Hoàn tất',
+		borrow_rid = NEW.rid
+    WHERE did = NEW.did AND pid = NEW.pid AND borrow_rid IS NULL AND rstatus = 'Thành công';
+END //
+
+
+
+
+-- ===================================== THẢO ====================================
 
 CREATE TRIGGER after_insert_printing
 AFTER INSERT ON printing

@@ -3,7 +3,8 @@ DELIMITER //
 -- PROCEDURE: THÊM PHIẾU MƯỢN VỀ NHÀ
 
 -- Note: sau khi insert sẽ gọi trigger after_insert_borrow_record
--- để chuyển trạng thái bản in sang 'Đã mượn' và cập nhật trạng thái phiếu đặt trước liên kết -> 'Thành công'
+-- để chuyển trạng thái bản in sang 'Đã mượn' và cập nhật trạng thái phiếu đặt trước liên kết -> 'HOÀN TẤT'
+DROP PROCEDURE IF EXISTS InsertBorrowRecord;
 CREATE PROCEDURE InsertBorrowRecord(
     IN _uid INT,
     IN _did INT,
@@ -14,6 +15,8 @@ BEGIN
     DECLARE _userStatus ENUM('Hạn chế', 'Bình thường', 'Khoá');
     DECLARE _printStatus ENUM('Có sẵn', 'Đã mượn', 'Đặt trước', 'Chỉ đọc', 'Thất lạc');
     DECLARE _currentBorrowCount INT;
+    DECLARE _reserveRecordExists INT DEFAULT 0;
+    DECLARE _isReservedByUser INT DEFAULT 0;
     
     -- Kiểm tra trạng thái của bạn đọc
     SELECT ustatus INTO _userStatus FROM luser WHERE uid = _uid;
@@ -27,6 +30,16 @@ BEGIN
     IF _printStatus != 'Có sẵn' THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Bản in không có sẵn để mượn.';
+    END IF;
+
+    -- Kiểm tra trạng thái của bản in và nếu nó đã được đặt trước bởi người dùng này
+    SELECT dstatus, EXISTS(SELECT 1 FROM reserve_record WHERE did = _did 
+														AND pid = _pid 
+														AND uid = _uid) 
+					INTO _printStatus, _isReservedByUser FROM printing WHERE did = _did AND pid = _pid;
+    IF _printStatus = 'Đặt trước' AND _isReservedByUser = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Bản in đã được đặt trước bởi người dùng khác.';
     END IF;
 
     -- Kiểm tra số lượng phiếu mượn về nhà hiện tại của bạn đọc
@@ -45,28 +58,35 @@ END //
 
 -- PROCEDURE: Gia hạn sách
 
-CREATE PROCEDURE ExtendBorrowTime(
-    IN _rid INT,
-    IN _returnFundDeduction INT -- @Thảo: chỗ này tự truyền cái giá trị trừ đi vào hay có sẵn rồi, tìm k thấy
-)
+DROP PROCEDURE IF EXISTS ExtendBorrowTime;
+CREATE PROCEDURE ExtendBorrowTime(IN _rid INT)
 BEGIN
     DECLARE _currentExtendTimes INT;
     DECLARE _currentReturnFund INT;
     DECLARE _currentExpectedReturnDate DATE;
+    DECLARE _currentBStatus ENUM('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn');
 
     -- Lấy thông tin hiện tại của phiếu mượn
-    SELECT extend_time, return_fund, expected_return_date INTO _currentExtendTimes, _currentReturnFund, _currentExpectedReturnDate
+    SELECT extend_time, return_fund, expected_return_date, bstatus 
+		INTO _currentExtendTimes, _currentReturnFund, _currentExpectedReturnDate, _currentBStatus
     FROM borrow_record
     WHERE rid = _rid;
 
+	-- Kiểm tra trạng thái của phiếu mượn 
+	IF _currentBStatus != 'Đang tiến hành' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Chỉ có thể gia hạn cho phiếu mượn đang ở trạng thái "Đang tiến hành".';
+    END IF;
+    
     -- Kiểm tra xem có thể gia hạn không
     IF _currentExtendTimes < 2 THEN
         -- Tăng số lần gia hạn lên 1 và cập nhật ngày trả dự kiến
         UPDATE borrow_record
         SET extend_time = _currentExtendTimes + 1,
             expected_return_date = DATE_ADD(_currentExpectedReturnDate, INTERVAL 7 DAY),
-            return_fund = _currentReturnFund - _returnFundDeduction
+            return_fund = _currentReturnFund - 7000
         WHERE rid = _rid;
+        
     ELSE
         -- Trả về lỗi không thể gia hạn
         SIGNAL SQLSTATE '45000'
@@ -76,30 +96,35 @@ END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: ĐANG TIẾN HÀNH -> HOÀN TẤT
 
+DROP PROCEDURE IF EXISTS UpdateBorrowRecordStatus_Completed;
 CREATE PROCEDURE UpdateBorrowRecordStatus_Completed(
     IN _rid INT,
-    IN _damagePercentage INT -- phần trăm hư hại, 0% là bình thường k bị hư gì
+    IN _damagePercentage INT
 )
 BEGIN
     DECLARE _expectedReturnDate DATE;
     DECLARE _did INT;
     DECLARE _pid INT;
+    DECLARE _coverCost INT;		-- Giá bìa document
     DECLARE _currentDate DATE; 	-- Ngày hiện tại
     DECLARE _daysLate INT; 		-- Số ngày trễ hạn
     DECLARE _fineAmount INT; 	-- Tiền phạt
     DECLARE _fineReason ENUM('Làm mất sách', 'Hủy đặt trước', 'Trễ hạn trả sách', 'Làm hư sách', 'Quá hạn và làm hỏng');
     
-    SELECT expected_return_date, did, pid INTO _expectedReturnDate, _did, _pid FROM borrow_record WHERE rid = _rid;
-    SET _currentDate = CURDATE();
-    SET _daysLate = DATEDIFF(_currentDate, _expectedReturnDate);
+    DECLARE _deposit INT; 
+    
+	SELECT br.expected_return_date, br.did, br.pid, doc.cover_cost 
+    INTO _expectedReturnDate, _did, _pid, _coverCost 
+    FROM borrow_record br
+    JOIN document doc ON br.did = doc.did
+    WHERE rid = _rid;
 	
     -- Tạo phiếu phạt 
     IF _daysLate > 0 OR _damagePercentage > 0 THEN
 		-- Quá hạn và làm hỏng
 		IF _damagePercentage > 0 AND _daysLate > 0 THEN
 			SET _fineReason = 'Quá hạn và làm hỏng';
-			SET _fineAmount = 5000 * _daysLate + 10000 * _damagePercentage;
-			-- @Thảo: Mỗi ngày muộn + 5000 (như trong report) và mỗi % hư sách + 10000
+			SET _fineAmount = 5000 * _daysLate + _coverCost * _damagePercentage;
 		-- Trễ hạn trả sách
 		ELSEIF _daysLate > 0 THEN
 			SET _fineReason = 'Trễ hạn trả sách';
@@ -107,19 +132,25 @@ BEGIN
 		-- Làm hư sách
 		ELSEIF _damagePercentage > 0 THEN
 			SET _fineReason = 'Làm hư sách';
-			SET SET _fineAmount = 10000 * _daysLate;
+			SET _fineAmount = _coverCost * _daysLate;
 		END IF;	
-        -- @Thảo: xem thử 'không vượt quá tiền trả trước' giúp
+         
+		-- Xem tiền phạt (_fineAmount) có lớn hơn deposit không, nếu lớn hơn lấy deposit
+		SELECT deposit INTO _deposit FROM borrow_record WHERE rid = _rid;
+		-- So sánh _fineAmount với _deposit
+		IF _fineAmount >= _deposit THEN
+			SET _fineAmount = _deposit;
+		END IF;
         
         -- Tạo hoá đơn phạt
-        -- INSERT INTO fine_invoice (fdate, fine, reason, fstatus, borrow_rid)
-		-- VALUES (_currentDate, _fineAmount, _fineReason, 'Chưa thanh toán', _rid);
-        CALL InsertFineInvoice(CURDATE(), _fineAmount, _fineReason, 'Chưa thanh toán', NULL, _rid, NULL)
+        CALL InsertFineInvoice(CURDATE(), _fineAmount, _fineReason, 'Đã gạch nợ', NULL, _rid, NULL);
     END IF;
 
     -- Cập nhật trạng thái phiếu mượn và bản in
     UPDATE borrow_record
-    SET return_date = _currentDate, bstatus = 'Hoàn tất'
+    SET return_date = CURDATE(),
+		bstatus = 'Hoàn tất',
+		return_fund = return_fund - _fineAmount
     WHERE rid = _rid;
 
     UPDATE printing
@@ -152,6 +183,7 @@ END //
 
 -- PROCEDURE: XOÁ PHIẾU MƯỢN VỀ NHÀ
 
+DROP PROCEDURE IF EXISTS DeleteBorrowRecord;
 CREATE PROCEDURE DeleteBorrowRecord(
 	IN _rid INT
 )
@@ -164,6 +196,9 @@ BEGIN
 
     -- Xóa hóa đơn phạt liên quan (nếu có)
     DELETE FROM fine_invoice WHERE borrow_rid = _rid;
+    
+    -- Xoá phiếu đặt trước liên quan (nếu có)
+    DELETE FROM reserve_record WHERE borrow_rid = _rid;
 
     -- Cập nhật trạng thái của bản in
     UPDATE printing
@@ -188,7 +223,7 @@ CREATE PROCEDURE InsertFineInvoice(
 )
 BEGIN
 	INSERT INTO fine_invoice (fdate, fine, reason, fstatus, on_site_rid, borrow_rid, reserve_rid)
-	VALUES (CURDATE(), _fine, _fineReason, 'Chưa thanh toán', _on_site_rid, _borrow_rid, _reserve_rid);
+	VALUES (_fdate, _fine, _reason, _fstatus, _on_site_rid, _borrow_rid, _reserve_rid);
 END //
 
 -- PROCEDURE: UPDATE HOÁ ĐƠN PHẠT
