@@ -58,7 +58,6 @@ END //
 
 -- PROCEDURE: Gia hạn sách
 
-DROP PROCEDURE IF EXISTS ExtendBorrowTime;
 CREATE PROCEDURE ExtendBorrowTime(IN _rid INT)
 BEGIN
     DECLARE _currentExtendTimes INT;
@@ -83,9 +82,19 @@ BEGIN
         -- Tăng số lần gia hạn lên 1 và cập nhật ngày trả dự kiến
         UPDATE borrow_record
         SET extend_time = _currentExtendTimes + 1,
-            expected_return_date = DATE_ADD(_currentExpectedReturnDate, INTERVAL 7 DAY),
-            return_fund = _currentReturnFund - 7000
+            expected_return_date = DATE_ADD(_currentExpectedReturnDate, INTERVAL 7 DAY)
         WHERE rid = _rid;
+
+        -- Kiểm tra và cập nhật return_fund
+        IF _currentReturnFund >= 7000 THEN
+            UPDATE borrow_record
+            SET return_fund = _currentReturnFund - 7000
+            WHERE rid = _rid;
+        ELSE
+            UPDATE borrow_record
+            SET return_fund = 0
+            WHERE rid = _rid;
+        END IF;
         
     ELSE
         -- Trả về lỗi không thể gia hạn
@@ -96,7 +105,6 @@ END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: ĐANG TIẾN HÀNH -> HOÀN TẤT
 
-DROP PROCEDURE IF EXISTS UpdateBorrowRecordStatus_Completed;
 CREATE PROCEDURE UpdateBorrowRecordStatus_Completed(
     IN _rid INT,
     IN _damagePercentage INT
@@ -108,17 +116,21 @@ BEGIN
     DECLARE _coverCost INT;		-- Giá bìa document
     DECLARE _currentDate DATE; 	-- Ngày hiện tại
     DECLARE _daysLate INT; 		-- Số ngày trễ hạn
-    DECLARE _fineAmount INT; 	-- Tiền phạt
+    DECLARE _fineAmount INT DEFAULT 0; 	-- Tiền phạt
     DECLARE _fineReason ENUM('Làm mất sách', 'Hủy đặt trước', 'Trễ hạn trả sách', 'Làm hư sách', 'Quá hạn và làm hỏng');
     
     DECLARE _deposit INT; 
+    DECLARE _returnFund INT;
     
-	SELECT br.expected_return_date, br.did, br.pid, doc.cover_cost 
-    INTO _expectedReturnDate, _did, _pid, _coverCost 
+	SELECT br.expected_return_date, br.did, br.pid, br.deposit, br.return_fund, doc.cover_cost 
+    INTO _expectedReturnDate, _did, _pid, _deposit, _returnFund, _coverCost 
     FROM borrow_record br
     JOIN document doc ON br.did = doc.did
-    WHERE rid = _rid;
+    WHERE br.rid = _rid;
 	
+    SET _currentDate = CURDATE();
+	SET _daysLate = DATEDIFF(_currentDate, _expectedReturnDate);
+    
     -- Tạo phiếu phạt 
     IF _daysLate > 0 OR _damagePercentage > 0 THEN
 		-- Quá hạn và làm hỏng
@@ -135,22 +147,25 @@ BEGIN
 			SET _fineAmount = _coverCost * _daysLate;
 		END IF;	
          
-		-- Xem tiền phạt (_fineAmount) có lớn hơn deposit không, nếu lớn hơn lấy deposit
-		SELECT deposit INTO _deposit FROM borrow_record WHERE rid = _rid;
 		-- So sánh _fineAmount với _deposit
-		IF _fineAmount >= _deposit THEN
+		IF _fineAmount > _deposit THEN
 			SET _fineAmount = _deposit;
 		END IF;
         
+        -- Kiểm tra tiền hoàn trả có lớn hơn tiền phạt không
+        IF _returnFund >= _fineAmount THEN
+            SET _returnFund = _returnFund - _fineAmount;
+        ELSE
+            SET _returnFund = 0;
+        END IF;
+        
         -- Tạo hoá đơn phạt
-        CALL InsertFineInvoice(CURDATE(), _fineAmount, _fineReason, 'Đã gạch nợ', NULL, _rid, NULL);
+		CALL InsertFineInvoice(CURDATE(), _fineAmount, _fineReason, 'Đã gạch nợ', NULL, _rid, NULL);
     END IF;
 
     -- Cập nhật trạng thái phiếu mượn và bản in
     UPDATE borrow_record
-    SET return_date = CURDATE(),
-		bstatus = 'Hoàn tất',
-		return_fund = return_fund - _fineAmount
+    SET return_date = _currentDate, bstatus = 'Hoàn tất', return_fund = _returnFund
     WHERE rid = _rid;
 
     UPDATE printing
