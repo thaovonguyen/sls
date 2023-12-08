@@ -9,5 +9,6 @@ import (
 
 type DatabaseRepo interface {
 	Connection() *sql.DB
-	GetUser(user string, password string) (*models.Account, error)
+	GetUserAccount(user string, password string) (*models.Account, error)
+	GetUserInfo(userType string, uid int) (*models.UserInfo, error)
 }

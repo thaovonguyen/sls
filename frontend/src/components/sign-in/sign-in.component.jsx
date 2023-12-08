@@ -47,10 +47,10 @@ const SignIn = (props) => {
         const user = { id: data.id, role: data.type };
         setUser(user);
       }
+      navigate(`/${data.type}/${data.id}`);
     } catch (error) {
       console.error("Error during authentication", error);
     }
-    navigate("/");
   };
 
   return (
