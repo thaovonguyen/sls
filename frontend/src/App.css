@@ -5,7 +5,7 @@
   height: 100vh;
 }
 .side-bar {
-  background: #ffa559;
+  background-color: #f4d06f;
 
   width: 15vw;
   height: inherit;
@@ -13,4 +13,8 @@
 .content {
   width: 85vw;
   height: inherit;
+}
+#sidebar-wrapper .sidebar-heading {
+  padding: 14px 0px;
+  padding-left: 4vw;
 }
