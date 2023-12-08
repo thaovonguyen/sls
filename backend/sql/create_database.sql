@@ -41,7 +41,7 @@ CREATE TABLE manage (
 CREATE TABLE document (
 	did int(7) auto_increment primary key,
     dname varchar(255) not null,
-    abstract varchar(255),
+    abstract text,
     publisher varchar(100),
     cover_cost int(5) not null
 );
@@ -391,7 +391,3 @@ CREATE TABLE report (
     field varchar(100),
     FOREIGN KEY (did) REFERENCES document(did)
 );
-
-CREATE INDEX book_name ON document (dname);
-
-CREATE INDEX printing_find ON printing (did, pid);
