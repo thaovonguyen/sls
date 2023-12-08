@@ -1,39 +1,71 @@
 import React, { useState } from "react";
 import "./sign-in.styles.css";
+import { useNavigate } from "react-router";
 
 const defaultFormFields = {
-  email: "",
+  text: "",
   password: "",
 };
 
 const SignIn = (props) => {
-  const { setJwtToken } = props;
+  const navigate = useNavigate();
+
+  const { setUser } = props;
   const [formFields, setFormFields] = useState(defaultFormFields);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    console.log(name);
     setFormFields({ ...formFields, [name]: value });
   };
-  const { email, password } = formFields;
-  const handleSubmit = (e) => {
+  const { text, password } = formFields;
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setJwtToken("a");
+    try {
+      const response = await fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user: formFields.text,
+          password: formFields.password,
+        }),
+      });
+
+      if (!response.ok) {
+        // Handle authentication failure
+        console.error("Authentication failed");
+        return;
+      }
+
+      // Assuming your Golang API returns a JSON with user information
+      const data = await response.json();
+
+      if (data.result !== "Authentication successful") {
+        alert(data.result);
+      } else {
+        const user = { id: data.id, role: data.type };
+        setUser(user);
+      }
+    } catch (error) {
+      console.error("Error during authentication", error);
+    }
+    navigate("/");
   };
 
   return (
     <div className="text-center sign-in">
       <form className="form-signin" onSubmit={handleSubmit}>
-        <img src="./sls-icon.png" alt="literature-1" className="mb-4" />
+        <img src="/sls-icon.png" alt="literature-1" className="mb-4" />
         <h1 className="h3 mb-3 font-weight-normal">Please sign in</h1>
         <label className="sr-only">Email address</label>
         <input
-          name="email"
-          type="email"
+          name="text"
+          type="text"
           onChange={handleChange}
-          value={email}
+          value={text}
           className="form-control"
-          placeholder="Email address"
+          placeholder="Username"
           required
           autoFocus
         ></input>

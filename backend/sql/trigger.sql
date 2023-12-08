@@ -1,5 +1,4 @@
 DELIMITER //
-
 -- ===================================== DUY ANH ====================================
 
 -- TRIGGER: Sau khi thêm hoá đơn phạt, kiểm tra nếu số lần cảnh cáo >= 3
@@ -61,9 +60,6 @@ BEGIN
     WHERE did = NEW.did AND pid = NEW.pid AND borrow_rid IS NULL AND rstatus = 'Thành công';
 END //
 
-
-
-
 -- ===================================== THẢO ====================================
 
 CREATE TRIGGER after_insert_printing
@@ -91,4 +87,3 @@ BEGIN
 END //
 
 DELIMITER ;
-
