@@ -63,6 +63,7 @@ BEGIN
     DECLARE _currentReturnFund INT;
     DECLARE _currentExpectedReturnDate DATE;
     DECLARE _currentBStatus ENUM('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn');
+    DECLARE MESSAGE_TEXT varchar(255);
 
     -- Lấy thông tin hiện tại của phiếu mượn
     SELECT extend_time, return_fund, expected_return_date, bstatus 
@@ -100,6 +101,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Đã đạt giới hạn gia hạn mượn sách.';
     END IF;
+    SELECT MESSAGE_TEXT as result
 END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: ĐANG TIẾN HÀNH -> HOÀN TẤT
@@ -288,7 +290,7 @@ BEGIN
     DECLARE user_type enum('staff', 'client');
     DECLARE user_id INT;
     DECLARE authentication_result VARCHAR(255);
-    
+    DECLARE out_password varchar(255);
     -- Retrieve user information based on the provided username
     SELECT sid, uid, password INTO out_sid, out_uid
     FROM login_info
@@ -316,29 +318,12 @@ BEGIN
     SELECT authentication_result AS result, user_id, user_type;
 END //
 
-
--- Các Lê
-
-CREATE PROCEDURE GetUserInformation(IN in_user_type VARCHAR(10), IN in_uid INT)
-BEGIN    
-    IF in_user_type = 'staff' THEN
-        -- Retrieve user information from the staff table
-        SELECT *
-        FROM staff
-        WHERE sid = in_uid;
-    ELSE 
-        SELECT *
-        FROM luser
-        WHERE uid = in_uid;
-    END IF;
-END //
-
--- ------------------------------ THẢO --------------------------------------------
--- Procedure Hiện thị sách trên Homepage
 CREATE PROCEDURE doc_on_homepage ()
 BEGIN
 	SELECT * FROM document;
 END //
+
+-- Procedure Hiện thị sách trên Homepage
 
 CREATE PROCEDURE search_by_name (IN in_name varchar(255))
 BEGIN
@@ -378,5 +363,43 @@ BEGIN
     END IF;
     -- Return the result
 END //
+
+-- Các Lê
+
+CREATE PROCEDURE GetUserInformation(IN in_user_type VARCHAR(10), IN in_uid INT)
+BEGIN    
+    IF in_user_type = 'staff' THEN
+        -- Retrieve user information from the staff table
+        SELECT *
+        FROM staff
+        WHERE sid = in_uid;
+    ELSE 
+        SELECT *
+        FROM luser
+        WHERE uid = in_uid;
+    END IF;
+END //
+
+CREATE PROCEDURE GetBorrowRecord(IN in_uid INT)
+BEGIN
+    SELECT * 
+    FROM borrow_record
+    WHERE uid = in_uid
+END //
+
+-- CREATE PROCEDURE insert_borrow(
+--     IN sid INT,
+--     IN uid INT,
+--     IN did INT,
+--     IN pid INT
+-- )
+-- BEGIN
+--     IF sid IS NULL OR uid IS NULL OR did IS NULL OR pid IS NULL THEN
+-- 		SET insert_result = 'Insert failed';
+-- 	ELSE
+-- 		--
+--     END IF;
+-- END //
+
 
 DELIMITER ;

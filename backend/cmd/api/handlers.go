@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -56,4 +57,43 @@ func (app *application) GetClientInfoHandler(w http.ResponseWriter, r *http.Requ
 		return 
 	}
 	_ = app.writeJSON(w, http.StatusOK, userInfo)
+}
+
+func (app *application) GetBorrowInfoHandler(w http.ResponseWriter, r *http.Request) {
+	uid, err := strconv.Atoi(chi.URLParam(r,"uid"))
+	
+	if err != nil {
+		app.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	borrowInfo, err := app.DB.GetBorrowRecord(uid)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusUnauthorized)
+		return
+	}
+	_ = app.writeJSON(w, http.StatusOK, borrowInfo)
+}
+
+func (app *application) ExtendBorrowHandler(w http.ResponseWriter, r *http.Request) {
+	var requestPayload struct {
+		Rid string `json:"rid"`
+	}
+	fmt.Println(r.Body)
+	err := app.readJSON(w, r, &requestPayload)
+	if err != nil {
+		fmt.Println("cant read json")
+		app.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		app.errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	result, err := app.DB.ExtendBorrow(requestPayload.Rid)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusUnauthorized)
+		return
+	}
+	_ = app.writeJSON(w, http.StatusOK, result)
 }

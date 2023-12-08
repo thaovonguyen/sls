@@ -41,13 +41,13 @@ const SignIn = (props) => {
       // Assuming your Golang API returns a JSON with user information
       const data = await response.json();
 
-      if (data.result !== "Authentication successful") {
+      if (data.result !== "Đăng nhập thành công") {
         alert(data.result);
       } else {
         const user = { id: data.id, role: data.type };
         setUser(user);
+        navigate(`/${user.role}/${user.id}`);
       }
-      navigate(`/${data.type}/${data.id}`);
     } catch (error) {
       console.error("Error during authentication", error);
     }

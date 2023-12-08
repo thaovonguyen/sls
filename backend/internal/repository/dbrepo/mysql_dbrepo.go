@@ -92,3 +92,57 @@ func (m *MySQLDBRepo) GetUserInfo(userType string, uid int) (*models.UserInfo, e
 	return &userinfo, nil
 }
 
+func (m *MySQLDBRepo) GetBorrowRecord(uid int) (*[]models.BorrowModel, error) {
+	var records []models.BorrowModel
+	stmt,err := m.DB.Prepare("CALL GetBorrowRecord(?)")
+
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query(uid)
+	
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	for rows.Next() {
+		var record models.BorrowModel
+		err = rows.Scan(
+			&record.RID,
+			&record.START_DATE,
+			&record.EXPECTED_RETURN_DATE,
+			&record.RETURN_DATE,
+			&record.EXTEND_TIME,
+			&record.BSTATUS,
+			&record.SID,
+			&record.UID,
+			&record.DID,
+			&record.PID,
+			&record.DEPOSIT,
+			&record.RETURN_FUND,
+		)
+		if err != nil {
+			return nil, err
+		}
+		records = append(records, record)
+	}
+	return &records, nil
+}
+
+func (m *MySQLDBRepo) ExtendBorrow(rid string) (sql.NullString, error) {
+	var result sql.NullString
+	stmt,err := m.DB.Prepare("CALL ExtendBorrowTime(?)")
+	if err != nil {
+		log.Fatal(err)
+		return sql.NullString{}, err
+	}
+	defer stmt.Close()
+	err = stmt.QueryRow(rid).Scan(&result)
+	if err != nil {
+		log.Fatal(err)
+		return sql.NullString{}, err
+	}
+	return result, nil
+}
