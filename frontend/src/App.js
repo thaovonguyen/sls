@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import SignIn from "./components/sign-in/sign-in.component";
-import LibrarianView from "./components/librarian-view/librarian-view.component";
-import UserView from "./components/user-view/user-view.component";
+
 import { Link } from "react-router-dom";
 import SideBar from "./components/side-bar/side-bar.component";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import ContentPage from "./components/content-page/content-page.component";
+import InfoPage from "./components/info-page/info-page.component";
 
 function App() {
   // const [login, setLogin] = useState(false);
@@ -30,7 +30,7 @@ function App() {
                   </SideBar>
                 </div>
                 <div className="content">
-                  <ContentPage />
+                  <ContentPage user={user} setUser={setUser} />
                 </div>
                 {/* <div className="content">
                 {user.role === "client" ? (
@@ -46,7 +46,13 @@ function App() {
               <Navigate to="/login" />
             )
           }
-        />
+        >
+          <Route
+            path={`${user.role}/${user.id}`}
+            index
+            element={<InfoPage path={`${user.role}/${user.id}`} />}
+          />
+        </Route>
       </Routes>
       {/* {!login ? (
         <SignIn setLogin={setLogin} />
