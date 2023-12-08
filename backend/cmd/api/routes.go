@@ -19,6 +19,10 @@ func (app *application) routes() http.Handler {
 	// mux.Get("/staff/1", app.GetStaffInfoHandler)
 	mux.Route("/client",func(r chi.Router) {
 		r.Get("/{uid}", app.GetClientInfoHandler)
+		r.Route("/borrow",func(r chi.Router) {
+			r.Get("/{uid}", app.GetBorrowInfoHandler)
+			r.Post("/{uid}", app.ExtendBorrowHandler)
+		})
 	})
 	mux.Route("/staff",func(r chi.Router) {
 		r.Get("/{uid}", app.GetStaffInfoHandler)

@@ -7,6 +7,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import ContentPage from "./components/content-page/content-page.component";
 import InfoPage from "./components/info-page/info-page.component";
+import BorrowRecord from "./components/borrow-record/borrow-record.conponent";
 
 function App() {
   // const [login, setLogin] = useState(false);
@@ -23,24 +24,23 @@ function App() {
               <div className="view">
                 <div className="side-bar border-end" id="sidebar-wrapper">
                   <SideBar setUser={setUser}>
-                    <Link
-                      className="list-group-item list-group-item-action list-group-item-light p-3 side-bar-link"
-                      to=""
-                    ></Link>
+                    {user.role == "client" ? (
+                      <>
+                        <Link
+                          className="list-group-item list-group-item-action list-group-item-light p-3 side-bar-link"
+                          to={`/client/borrow/${user.id}`}
+                        >
+                          Phiếu mượn
+                        </Link>
+                      </>
+                    ) : (
+                      ""
+                    )}
                   </SideBar>
                 </div>
                 <div className="content">
                   <ContentPage user={user} setUser={setUser} />
                 </div>
-                {/* <div className="content">
-                {user.role === "client" ? (
-                  <UserView />
-                ) : user.role === "staff" ? (
-                  <LibrarianView />
-                ) : (
-                  <Navigate to="/login" />
-                )}
-              </div> */}
               </div>
             ) : (
               <Navigate to="/login" />
@@ -49,8 +49,12 @@ function App() {
         >
           <Route
             path={`${user.role}/${user.id}`}
-            index
+            index={true}
             element={<InfoPage path={`${user.role}/${user.id}`} />}
+          />
+          <Route
+            path={`client/borrow/${user.id}`}
+            element={<BorrowRecord user={user} />}
           />
         </Route>
       </Routes>

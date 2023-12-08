@@ -64,6 +64,7 @@ BEGIN
     DECLARE _currentReturnFund INT;
     DECLARE _currentExpectedReturnDate DATE;
     DECLARE _currentBStatus ENUM('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn');
+    DECLARE MESSAGE_TEXT varchar(255);
 
     -- Lấy thông tin hiện tại của phiếu mượn
     SELECT extend_time, return_fund, expected_return_date, bstatus 
@@ -101,6 +102,7 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Đã đạt giới hạn gia hạn mượn sách.';
     END IF;
+    SELECT MESSAGE_TEXT as result
 END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: ĐANG TIẾN HÀNH -> HOÀN TẤT
@@ -290,7 +292,7 @@ BEGIN
     DECLARE user_type enum('staff', 'client');
     DECLARE user_id INT;
     DECLARE authentication_result VARCHAR(255);
-    
+    DECLARE out_password varchar(255);
     -- Retrieve user information based on the provided username
     SELECT sid, uid, password INTO out_sid, out_uid, out_password
     FROM login_info
@@ -334,6 +336,13 @@ BEGIN
         FROM luser
         WHERE uid = in_uid;
     END IF;
+END //
+
+CREATE PROCEDURE GetBorrowRecord(IN in_uid INT)
+BEGIN
+    SELECT * 
+    FROM borrow_record
+    WHERE uid = in_uid
 END //
 
 -- CREATE PROCEDURE insert_borrow(
