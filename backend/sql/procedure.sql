@@ -4,7 +4,6 @@ DELIMITER //
 
 -- Note: sau khi insert sẽ gọi trigger after_insert_borrow_record
 -- để chuyển trạng thái bản in sang 'Đã mượn' và cập nhật trạng thái phiếu đặt trước liên kết -> 'HOÀN TẤT'
-DROP PROCEDURE IF EXISTS InsertBorrowRecord;
 CREATE PROCEDURE InsertBorrowRecord(
     IN _uid INT,
     IN _did INT,
@@ -200,7 +199,6 @@ END //
 
 -- PROCEDURE: XOÁ PHIẾU MƯỢN VỀ NHÀ
 
-DROP PROCEDURE IF EXISTS DeleteBorrowRecord;
 CREATE PROCEDURE DeleteBorrowRecord(
 	IN _rid INT
 )
@@ -294,7 +292,7 @@ BEGIN
     DECLARE authentication_result VARCHAR(255);
     DECLARE out_password varchar(255);
     -- Retrieve user information based on the provided username
-    SELECT sid, uid, password INTO out_sid, out_uid, out_password
+    SELECT sid, uid, password INTO out_sid, out_uid
     FROM login_info
     WHERE login_info.username = in_username;
     
@@ -320,12 +318,56 @@ BEGIN
     SELECT authentication_result AS result, user_id, user_type;
 END //
 
+CREATE PROCEDURE doc_on_homepage ()
+BEGIN
+	SELECT * FROM document;
+END //
+
+-- Procedure Hiện thị sách trên Homepage
+
+CREATE PROCEDURE search_by_name (IN in_name varchar(255))
+BEGIN
+	IF in_name IS NULL THEN 
+        SELECT * FROM document;
+    ELSE 
+        SET in_name = CONCAT('%', in_name, '%');
+        SELECT * FROM document WHERE document.dname LIKE in_name;
+    END IF;
+END //
+
+CREATE PROCEDURE doc_display (IN input_id int)
+BEGIN    
+    -- Check if the row exists in con1
+    IF EXISTS (SELECT 1 FROM book WHERE did = input_id) THEN
+        SELECT document.*, book.btype, GROUP_CONCAT(book_author.author_name) AS author, 'Sách' AS type
+		FROM document
+		LEFT JOIN book ON document.did = book.did
+		LEFT JOIN book_author ON book.did = book_author.did
+		WHERE document.did = input_id
+		GROUP BY document.did;
+    -- Check if the row exists in con2
+    ELSEIF EXISTS (SELECT 1 FROM magazine WHERE did = input_id) THEN
+        SELECT document.*, magazine.volumn, magazine.highlight, 'Tạp chí' AS type
+		FROM document
+		LEFT JOIN magazine ON document.did = magazine.did
+		WHERE document.did = input_id;
+    -- Check if the row exists in con3
+    ELSEIF EXISTS (SELECT 1 FROM report WHERE did = input_id) THEN
+        SELECT document.*, report.nation, report.field, 'Báo cáo' AS type
+		FROM document
+		LEFT JOIN report ON document.did = report.did
+		WHERE document.did = input_id;
+	ELSE
+		SELECT document.*, 'Khác' AS type
+        FROM document WHERE document.did = input_id;
+    END IF;
+    -- Return the result
+END //
 
 -- Các Lê
 
 CREATE PROCEDURE GetUserInformation(IN in_user_type VARCHAR(10), IN in_uid INT)
-BEGIN
-    
+BEGIN    
     IF in_user_type = 'staff' THEN
         -- Retrieve user information from the staff table
         SELECT *
@@ -358,5 +400,6 @@ END //
 -- 		--
 --     END IF;
 -- END //
+
 
 DELIMITER ;
