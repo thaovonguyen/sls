@@ -12,7 +12,7 @@ INSERT INTO staff VALUES
 (7, 'Yến', 'Bùi Thị', 'Nữ', '123789456012', '1991-07-22', '0988777666', 'yenbui@gmail.com', '2022-08-18', null, 2);
 
 INSERT INTO luser VALUES
-(1, 'Ngọc', 'Trần Thị', 'Căn cước công dân', '123456789012', '/path/to/9f33c80d0', '123 Đường ABC, Quận 1, TP.HCM', '1990-05-15', 'Công ty ABC', '0987654321', 'ngoc.tran@gmail.com', 'Bình thường', 1, '2023-01-10'), -- Xong
+(1, 'Ngọc', 'Trần Thị', 'Căn cước công dân', '123456789012', '/path/to/9f33c80d0', '123 Đường ABC, Quận 1, TP.HCM', '1990-05-15', 'Công ty ABC', '0987654321', 'ngoc.tran@gmail.com', 'Bình thường', 0, '2023-01-10'), -- Xong
 (2, 'Anh', 'Nguyễn Văn', 'Căn cước công dân', '234567890123', '/path/to/b42a7e1f5', '456 Đường XYZ, Quận 2, TP.HCM', '1985-02-20', 'Công ty XYZ', '0912345678', 'anh.nguyen@gmail.com', 'Bình thường', 0, '2022-12-05'),
 (3, 'Linh', 'Lê Thị', 'Căn cước công dân', '345678901234', '/path/to/6d8b2c0a1', '789 Đường LMN, Quận 3, TP.HCM', '1995-10-10', 'Công ty LMN', '0865432109', 'linh.le@gmail.com', 'Bình thường', 0, '2023-02-20'),
 (4, 'Bình', 'Phạm Minh', 'Căn cước công dân', '456789012345', '/path/to/f73e1d2b4', '101 Đường PQR, Quận 4, TP.HCM', '1988-12-25', 'Công ty PQR', '0978563412', 'binh.pham@gmail.com', 'Bình thường', 0, '2022-11-18'),
@@ -22,7 +22,7 @@ INSERT INTO luser VALUES
 (8, 'Hà', 'Lê Thị', 'Căn cước công dân', '890123456789', '/path/to/5f0b2a7e1', '505 Đường LMN, Quận 8, TP.HCM', '1993-07-22', 'Công ty LMN', '0911111111', 'ha.le@gmail.com', 'Bình thường', 0, '2022-09-12'),
 (9, 'Đức', 'Trần Văn', 'Thẻ học sinh', '1234567', '/path/to/4c3d2b1a8', '606 Đường PQR, Quận 9, TP.HCM', '2005-11-02', 'Trường PQR', '0944444444', 'duc.tran@gmail.com', 'Khóa', 0, '2023-05-20'),
 (10, 'Hòa', 'Đinh Thị', 'Căn cước công dân', '012345678901', '/path/to/0b8c3d2a1', '707 Đường UVW, Quận 10, TP.HCM', '1998-06-11', 'Công ty UVW', '0977777777', 'hoa.dinh@gmail.com', 'Bình thường', 0, '2022-08-28'),
-(11, 'Quân', 'Trương Minh', 'Căn cước công dân', '123012345678', '/path/to/1e5f3c8b0', '808 Đường XYZ, Quận 11, TP.HCM', '1989-04-30', 'Công ty XYZ', '0900000000', 'quan.truong@gmail.com', 'Bình thường', 2, '2023-06-22');
+(11, 'Quân', 'Trương Minh', 'Căn cước công dân', '123012345678', '/path/to/1e5f3c8b0', '808 Đường XYZ, Quận 11, TP.HCM', '1989-04-30', 'Công ty XYZ', '0900000000', 'quan.truong@gmail.com', 'Bình thường', 0, '2023-06-22');
 
 INSERT INTO login_info VALUES
 ('ngoctran', '123', 1, null),
@@ -36,12 +36,10 @@ INSERT INTO login_info VALUES
 ('ductran', '123', 9, null),
 ('hoadinh', '123', 10, null),
 ('quantruong', '123', 11, null),
-('annguyen', '123', null, 1),
 ('binhtran', '123', null, 2),
 ('cuongle', '123', null, 3),
 ('ngocdang', '123', null, 4),
 ('quocnguyen', '123', null, 5),
-('hoatrinh', '123', null, 6),
 ('yenbui', '123', null, 7);
 
 INSERT INTO printing_import (iid, idate, bid)
@@ -141,8 +139,7 @@ VALUES
 (4, '2023-04-09', '2023-05-18', 2, 'Hoàn tất', 3, 7, 7, 2),
 (5, '2023-09-12', '2023-11-01', 0, 'Trả sau hạn', 1, 11, 7, 2),
 (6, '2023-05-05', '2023-06-10', 1, 'Hoàn tất', 2, 2, 8, 3),
-(7, '2023-07-15', null, 0, 'Quá hạn', 4, 2, 5, 1),
-(8, '2023-08-20', '2023-09-30', 0, 'Đang tiến hành', 5, 2, 2, 1);
+(7, '2023-07-15', null, 0, 'Quá hạn', 4, 2, 5, 1);
 
 INSERT INTO reserve_record (rid, rdate, rstatus, borrow_rid, uid, did, pid)
 VALUES
