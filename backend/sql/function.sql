@@ -1,5 +1,5 @@
 DELIMITER //
-
+-- FUNCTION: Số tiền phạt trong một tháng bất kỳ của thư viện (không tính các hóa đơn chưa thanh toán)
 CREATE FUNCTION fine_report(in_month INT, in_year INT)
 RETURNS INT
 READS SQL DATA
@@ -24,30 +24,28 @@ BEGIN
     END IF;
 END //
 
-CREATE FUNCTION import_cost(id INT)
+-- FUNCTION: Số sách hiện đang ở một chi nhánh
+CREATE FUNCTION printing_count(_bid INT)
 RETURNS INT
 READS SQL DATA
 BEGIN
-    DECLARE key_exists INT;
     DECLARE result INT;
+    DECLARE branch_valid BOOLEAN;
+    
+    SET branch_valid = EXISTS(SELECT * FROM branch WHERE branch.bid = _bid);
+    
+    IF branch_valid = FALSE THEN
+		SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Chi nhánh không tồn tại';
+	END IF;
 
     -- Check if the import exists
-    SELECT COUNT(*) INTO key_exists
-    FROM printing_import
-    WHERE iid = id;
+    SELECT COUNT(*) INTO result
+    FROM printing
+    JOIN printing_import ON printing.iid = printing_import.iid
+    WHERE printing_import.bid = _bid;
 
-    IF key_exists = 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Đợt nhập không tồn tại';
-    ELSE
-        -- Calculate the sum of costs
-        SELECT COALESCE(SUM(cost), 0) INTO result
-        FROM printing
-        INNER JOIN printing_import ON printing_import.iid = printing.iid
-        WHERE printing_import.iid = id;
-
-        RETURN result;
-    END IF;
+	RETURN result;
 END //
 
 DELIMITER ;

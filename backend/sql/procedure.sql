@@ -42,11 +42,9 @@ BEGIN
 	END IF;
     
     -- Kiểm tra trạng thái của bản in và nếu nó đã được đặt trước bởi người dùng này
-    SELECT dstatus, EXISTS(SELECT 1 FROM reserve_record WHERE did = _did 
-														AND pid = _pid 
-														AND uid = _uid
-                                                        AND rstatus = 'Thành công') 
-					INTO _printStatus, _isReservedByUser FROM printing WHERE did = _did AND pid = _pid;
+    SELECT dstatus, EXISTS(SELECT 1 FROM reserve_record 
+		WHERE did = _did AND pid = _pid AND uid = _uid AND rstatus = 'Thành công') 
+		INTO _printStatus, _isReservedByUser FROM printing WHERE did = _did AND pid = _pid;
     IF _printStatus = 'Đặt trước' AND _isReservedByUser = 0 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Bản in đã được đặt trước bởi người dùng khác.';
@@ -78,7 +76,6 @@ BEGIN
     DECLARE _currentReturnFund INT;
     DECLARE _currentExpectedReturnDate DATE;
     DECLARE _currentBStatus ENUM('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn');
-    DECLARE MESSAGE_TEXT varchar(255);
 
     -- Lấy thông tin hiện tại của phiếu mượn
     SELECT extend_time, return_fund, expected_return_date, bstatus 
@@ -115,7 +112,6 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Đã đạt giới hạn gia hạn mượn sách.';
     END IF;
-    SELECT MESSAGE_TEXT as result
 END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: ĐANG TIẾN HÀNH -> HOÀN TẤT
@@ -183,7 +179,7 @@ END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: QUÁ HẠN -> TRẢ SAU HẠN
 
-CREATE PROCEDURE UpdateBorrowRecordStatus_Overdue(
+CREATE PROCEDURE UpdateBorrowRecordStatus_ReturnOverdue(
 	IN _rid INT
 )
 BEGIN
@@ -201,6 +197,42 @@ BEGIN
     -- Cập nhật trạng thái của bản in liên quan
     UPDATE printing
     SET dstatus = 'Có sẵn'
+    WHERE did = _did AND pid = _pid;
+END //
+
+-- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: QUÁ 15 NGÀY TỪ HẠN TRẢ -> SÁCH THẤT LẠC
+CREATE PROCEDURE UpdateBorrowRecordStatus_Overdue(
+    IN _rid INT
+)
+BEGIN
+    DECLARE _expectedReturnDate DATE;
+    DECLARE _did INT;
+    DECLARE _pid INT;
+    DECLARE _deposit INT;		-- Giá bìa document
+    DECLARE _currentDate DATE; 	-- Ngày hiện tại
+    DECLARE _daysLate INT; 		-- Số ngày trễ hạn
+    DECLARE _fineAmount INT DEFAULT 0; 	-- Tiền phạt
+    
+	SELECT expected_return_date, did, pid, deposit
+    INTO _expectedReturnDate, _did, _pid, _deposit
+    FROM borrow_record
+    WHERE rid = _rid;
+	
+    SET _currentDate = CURDATE();
+	SET _daysLate = DATEDIFF(_currentDate, _expectedReturnDate);
+    
+    -- Tạo phiếu phạt 
+	IF _daysLate > 15 THEN
+		CALL InsertFineInvoice(_deposit, 'Làm mất sách', 'Đã gạch nợ', NULL, _rid, NULL);
+    END IF;
+
+    -- Cập nhật trạng thái phiếu mượn và bản in
+    UPDATE borrow_record
+    SET return_fund = 0
+    WHERE rid = _rid;
+
+    UPDATE printing
+    SET dstatus = 'Thất lạc'
     WHERE did = _did AND pid = _pid;
 END //
 
@@ -223,7 +255,7 @@ BEGIN
 	SET _daysLate = DATEDIFF(_currentDate, _expectedReturnDate);
     
     IF _daysLate > 15 THEN
-		call UpdateBorrowRecordStatus_Overdue(_rid);
+		call UpdateBorrowRecordStatus_ReturnOverdue(_rid);
 	ELSE 
 		call UpdateBorrowRecordStatus_Completed(_rid, _damagePercentage);
 	END IF;
@@ -332,7 +364,6 @@ BEGIN
     DECLARE user_type enum('staff', 'client');
     DECLARE user_id INT;
     DECLARE authentication_result VARCHAR(255);
-    DECLARE out_password varchar(255);
     DECLARE out_password varchar(255);
     -- Retrieve user information based on the provided username
     SELECT sid, uid, password INTO out_sid, out_uid, out_password
