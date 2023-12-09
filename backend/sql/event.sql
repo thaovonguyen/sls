@@ -19,7 +19,9 @@ BEGIN
     SET rstatus = 'Quá hạn'
     WHERE rstatus = 'Đang tiến hành' AND start_date < CURDATE();
     
-    
+    UPDATE fine_invoice
+    SET rstatus = 'Quá hạn'
+    WHERE rstatus = 'Đang tiến hành' AND start_date < CURDATE();
 END //
 
 DELIMITER ;

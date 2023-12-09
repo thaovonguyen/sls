@@ -78,7 +78,6 @@ BEGIN
     DECLARE _currentReturnFund INT;
     DECLARE _currentExpectedReturnDate DATE;
     DECLARE _currentBStatus ENUM('Hoàn tất', 'Đang tiến hành', 'Quá hạn', 'Trả sau hạn');
-    DECLARE MESSAGE_TEXT varchar(255);
 
     -- Lấy thông tin hiện tại của phiếu mượn
     SELECT extend_time, return_fund, expected_return_date, bstatus 
