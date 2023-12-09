@@ -22,7 +22,7 @@ BEGIN
     END IF;
 
     -- Kiểm tra và cập nhật warning_time của người dùng
-    IF _uid IS NOT NULL THEN
+    IF _uid IS NOT NULL AND new.reason = 'Làm mất sách' THEN
         SELECT warning_time INTO _warningCount FROM luser WHERE uid = _uid;
 
         -- Chỉ tăng warning_time nếu nó nhỏ hơn 3
@@ -30,16 +30,46 @@ BEGIN
             UPDATE luser
             SET warning_time = warning_time + 1
             WHERE uid = _uid;
-        END IF;
-
         -- Cập nhật ustatus thành 'Khóa' nếu warning_time đã đạt 3
-        IF _warningCount >= 3 THEN
+        ELSEIF _warningCount >= 3 THEN
             UPDATE luser
-            SET ustatus = 'Khóa'
+            SET ustatus = 'Hạn chế'
             WHERE uid = _uid;
         END IF;
     END IF;
 END //
+
+-- TRIGGER: Sau khi xóa hóa đơn phạt, nếu bạn đọc bị hạn chế/khóa do hóa đơn phạt đó thì chuyển về 'Bình thường'
+-- và trừ warning_time
+CREATE TRIGGER after_delete_fine
+AFTER DELETE ON fine_invoice
+FOR EACH ROW
+BEGIN
+	DECLARE _uid INT;
+	DECLARE _warning_time INT;
+    DECLARE _status ENUM('Khóa', 'Hạn chế', 'Bình thường');
+
+    SELECT uid, warning_time, ustatus INTO _uid, _warning_time, _status
+    FROM luser 
+    JOIN borrow_record ON luser.uid = borrow_record.uid
+    JOIN fine_invoice ON fine_invoice.borrow_id = borrow_record.rid
+    WHERE fine_invoice.fid = old.fid;
+    
+    IF _status = 'Hạn chế' AND old.reason = 'Làm mất sách' THEN
+		UPDATE luser
+        SET ustatus = 'Bình thường'
+        WHERE uid = _uid;
+	ELSEIF _status = 'Khóa' AND old.fstatus = 'Chưa thanh toán' THEN
+		UPDATE luser
+        SET ustatus = 'Bình thường', warning_time = warning_time - 1
+        WHERE uid = _uid;
+	ELSEIF old.reason = 'Làm mất sách' THEN
+		UPDATE luser
+        SET warning_time = warning_time - 1
+        WHERE uid = _uid;
+    END IF;
+END //
+
 
 -- TRIGGER: Sau khi thêm phiếu mượn về nhà, chuyển trạng thái bản in thành 'Đã mượn'
 -- và cập nhật trạng thái phiếu đặt trước liên kết với nó thành 'Hoàn tất'
@@ -49,9 +79,11 @@ AFTER INSERT ON borrow_record
 FOR EACH ROW
 BEGIN
     -- Cập nhật trạng thái của bản in trong bảng printing
-    UPDATE printing
-    SET dstatus = 'Đã mượn'
-    WHERE did = NEW.did AND pid = NEW.pid;
+    IF new.bstatus = 'Đang tiến hành' THEN
+		UPDATE printing
+		SET dstatus = 'Đã mượn'
+		WHERE did = NEW.did AND pid = NEW.pid;
+    END IF;
 
     -- Cập nhật trạng thái của phiếu đặt trước liên quan trong bảng reserve_record
     UPDATE reserve_record
@@ -76,6 +108,11 @@ BEFORE INSERT ON reserve_record
 FOR EACH ROW
 BEGIN
     SET NEW.deposit = (SELECT cover_cost FROM document WHERE document.did = NEW.did);
+    IF new.rstatus = 'Thành công' THEN
+		UPDATE printing 
+		SET dstatus = 'Đặt trước'
+		WHERE printing.did = NEW.did AND printing.pid = NEW.pid;
+    END IF;
 END //
 
 CREATE TRIGGER before_insert_borrow_record
@@ -84,6 +121,7 @@ FOR EACH ROW
 BEGIN
     SET NEW.deposit = (SELECT cover_cost FROM document WHERE document.did = NEW.did);
     SET NEW.return_fund = NEW.deposit - 7000 * new.extend_time;
+	SET NEW.expected_return_date = DATE_ADD(NEW.start_date, INTERVAL (30 + 7*NEW.extend_time) DAY);
 END //
 
 DELIMITER ;
