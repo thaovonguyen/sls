@@ -56,7 +56,7 @@ const (
 )
 ```
 
-Run 3 files respectively `create_database.sql`, `insert_data.sql`, `procedure.sql` in MySQL to initialize the database on localhost.
+Run 3 files respectively `create_database.sql`, `procedure.sql`, `function.sql`, `trigger.sql`, `event.sql` and `insert_data.sql` in MySQL to initialize the database on localhost.
 
 In the project directory, you can run:
 
