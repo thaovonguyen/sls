@@ -27,7 +27,6 @@ const BorrowRecord = (props) => {
 
       // Assuming your Golang API returns a JSON with user information
       const data = await response.json();
-      console.log(data);
       setRecords(data);
     };
     fetchData();
