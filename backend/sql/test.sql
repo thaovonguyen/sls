@@ -67,4 +67,10 @@ call sls_database.InsertBorrowRecord(6, 3, 1, 2); -- Bản 3,1 đã được mư
 
 SELECT * FROM sls_database.printing;
 
+-- Test case 7: Các function
+select sls_database.fine_report(7, 2023);
+
+select sls_database.printing_count(3);
+
+SELECT * FROM sls_database.fine_invoice;
 
