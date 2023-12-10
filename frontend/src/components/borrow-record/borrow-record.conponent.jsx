@@ -91,12 +91,15 @@ const BorrowRecord = (props) => {
                 <button
                   type="button"
                   className={`btn ${
-                    record.bstatus == "Đang tiến hành"
+                    record.bstatus == "Đang tiến hành" && record.extend_time < 2
                       ? "btn-primary"
                       : "btn-secondary"
                   } align-items-center`}
                   style={{ height: "30px" }}
-                  disabled={record.bstatus != "Đang tiến hành"}
+                  disabled={
+                    record.bstatus != "Đang tiến hành" ||
+                    record.extend_time >= 2
+                  }
                   value={record.rid}
                   onClick={handleClick}
                 >
