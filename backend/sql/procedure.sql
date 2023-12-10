@@ -107,11 +107,14 @@ BEGIN
             SET return_fund = 0
             WHERE rid = _rid;
         END IF;
+        SELECT NULL as result
     ELSE
         -- Trả về lỗi không thể gia hạn
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Đã đạt giới hạn gia hạn mượn sách.';
+        SET MESSAGE_TEXT = 'Đã đạt giới hạn gia hạn mượn sách.'
+        SELECT MESSAGE_TEXT as result;
     END IF;
+    
 END //
 
 -- PROCEDURE: THAY ĐỔI TRẠNG THÁI PHIẾU MƯỢN: ĐANG TIẾN HÀNH -> HOÀN TẤT
