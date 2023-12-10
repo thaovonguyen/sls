@@ -440,6 +440,21 @@ END //
 
 -- Các Lê
 
+
+CREATE PROCEDURE GetDocType(IN in_did INT)
+BEGIN    
+    IF EXISTS (SELECT 1 FROM book WHERE did = in_did) THEN
+    SELECT 'Sách' AS type;
+    ELSEIF EXISTS (SELECT 1 FROM magazine WHERE did = in_did) THEN
+    SELECT 'Tạp chí' AS type;
+    ELSEIF EXISTS (SELECT 1 FROM report WHERE did = in_did) THEN
+    SELECT 'Báo cáo' AS type;
+    ELSE 
+    SELECT 'Không tồn tại tài liệu này' AS type;
+    END IF;
+END //
+
+
 CREATE PROCEDURE GetUserInformation(IN in_user_type VARCHAR(10), IN in_uid INT)
 BEGIN    
     IF in_user_type = 'staff' THEN

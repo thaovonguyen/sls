@@ -8,6 +8,7 @@ import "./App.css";
 import ContentPage from "./components/content-page/content-page.component";
 import InfoPage from "./components/info-page/info-page.component";
 import BorrowRecord from "./components/borrow-record/borrow-record.conponent";
+import BookPage from "./components/book-page/book-page.component";
 
 function App() {
   // const [login, setLogin] = useState(false);
@@ -26,6 +27,12 @@ function App() {
                   <SideBar setUser={setUser}>
                     {user.role == "client" ? (
                       <>
+                        <Link
+                          className="list-group-item list-group-item-action list-group-item-light p-3 side-bar-link"
+                          to="/client/docs"
+                        >
+                          Mượn sách
+                        </Link>
                         <Link
                           className="list-group-item list-group-item-action list-group-item-light p-3 side-bar-link"
                           to={`/client/borrow/${user.id}`}
@@ -56,6 +63,7 @@ function App() {
             path={`client/borrow/${user.id}`}
             element={<BorrowRecord user={user} />}
           />
+          <Route path={`client/docs`} element={<BookPage />} />
         </Route>
       </Routes>
       {/* {!login ? (

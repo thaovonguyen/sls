@@ -13,4 +13,7 @@ type DatabaseRepo interface {
 	GetUserInfo(userType string, uid int) (*models.UserInfo, error)
 	GetBorrowRecord(uid int) (*[]models.BorrowModel, error)
 	ExtendBorrow(rid string) (sql.NullString, error)
+	GetDocs() (*[]models.DocModel, error)
+	GetDoc(did int) (*models.FullDocModel, error)
+	SearchDocs(search string) (*models.DocModel, error)
 }

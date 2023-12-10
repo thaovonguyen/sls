@@ -146,3 +146,106 @@ func (m *MySQLDBRepo) ExtendBorrow(rid string) (sql.NullString, error) {
 	}
 	return result, nil
 }
+
+func (m *MySQLDBRepo) GetDocs() (*[]models.DocModel, error){
+	var docs []models.DocModel
+	stmt,err := m.DB.Prepare("CALL doc_on_homepage()")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	rows,err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next(){
+		var doc models.DocModel
+		err = rows.Scan(
+			&doc.DID,
+			&doc.DNAME,
+			&doc.ABSTRACT,
+			&doc.PUBLISHER,
+			&doc.COVER_COST,
+		)
+		if err != nil {
+			return nil, err
+		}
+		docs = append(docs, doc)
+	}
+	return &docs,nil
+}
+
+func (m *MySQLDBRepo) GetDoc(did int) (*models.FullDocModel, error) {
+	var doc models.DocModel
+	var fullDoc models.FullDocModel
+	stmt,err := m.DB.Prepare("CALL GetDocType(?)")
+	if err != nil{
+		return nil, err
+	}
+	defer stmt.Close()
+	var result string
+	err = stmt.QueryRow(did).Scan(&result)
+	if err != nil{
+		return nil, err
+	}
+	stmt2,err := m.DB.Prepare("CALL doc_display(?)")
+	if err != nil{
+		return nil, err
+	}
+	defer stmt2.Close()
+	switch result{
+	case "Sách":
+		var addInfo models.BookModel
+		err = stmt2.QueryRow(did).Scan(&doc.DID,
+			&doc.DNAME,
+			&doc.ABSTRACT,
+			&doc.PUBLISHER,
+			&doc.COVER_COST,&addInfo.BTYPE, &addInfo.AUTHOR,&addInfo.TYPE)
+		if err != nil{
+			return nil, err
+		}
+		fullDoc = addInfo
+	case "Tạp chí":
+		var addInfo models.MazModel
+		err = stmt2.QueryRow(did).Scan(&doc.DID,
+			&doc.DNAME,
+			&doc.ABSTRACT,
+			&doc.PUBLISHER,
+			&doc.COVER_COST,&addInfo.VOL, &addInfo.HIGHLIGHT,&addInfo.TYPE)
+		if err != nil{
+			return nil, err
+		}
+		fullDoc = addInfo
+	case "Báo cáo":
+		var addInfo models.ReportModel
+		err = stmt2.QueryRow(did).Scan(&doc.DID,
+			&doc.DNAME,
+			&doc.ABSTRACT,
+			&doc.PUBLISHER,
+			&doc.COVER_COST,&addInfo.NATION, &addInfo.FIELD,&addInfo.TYPE)
+		if err != nil{
+			return nil, err
+		}
+		fullDoc = addInfo
+	}
+	return &fullDoc,nil
+}
+func (m *MySQLDBRepo) SearchDocs(search string) (*models.DocModel, error) {
+	var doc models.DocModel
+	stmt,err := m.DB.Prepare("CALL search_by_name(?)")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	err = stmt.QueryRow(search).Scan(
+		&doc.DID,
+		&doc.DNAME,
+		&doc.ABSTRACT,
+		&doc.PUBLISHER,
+		&doc.COVER_COST,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &doc, nil
+}

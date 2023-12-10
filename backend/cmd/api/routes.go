@@ -23,6 +23,11 @@ func (app *application) routes() http.Handler {
 			r.Get("/{uid}", app.GetBorrowInfoHandler)
 			r.Post("/{uid}", app.ExtendBorrowHandler)
 		})
+		r.Route("/docs", func(r chi.Router) {
+			r.Get("/", app.GetDocsHandler)
+			r.Get("/{did}", app.GetDocHandler)
+			r.Post("/search", app.SearchDocsHandler)
+		})
 	})
 	mux.Route("/staff",func(r chi.Router) {
 		r.Get("/{uid}", app.GetStaffInfoHandler)
