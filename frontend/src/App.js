@@ -66,18 +66,6 @@ function App() {
           <Route path={`client/docs`} element={<BookPage />} />
         </Route>
       </Routes>
-      {/* {!login ? (
-        <SignIn setLogin={setLogin} />
-      ) : (
-        <div className="view">
-          <div className="side-bar">
-            <SideBar setLogin={setLogin} />
-          </div>
-          <div className="content">
-            {role === "user" ? <UserView /> : <LibrarianView />}
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

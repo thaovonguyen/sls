@@ -139,7 +139,8 @@ VALUES
 (4, '2023-04-09', '2023-05-18', 2, 'Hoàn tất', 3, 7, 7, 2),
 (5, '2023-09-12', '2023-11-01', 0, 'Trả sau hạn', 1, 11, 7, 2),
 (6, '2023-05-05', '2023-06-10', 1, 'Hoàn tất', 2, 2, 8, 3),
-(7, '2023-07-15', null, 0, 'Quá hạn', 4, 2, 5, 1);
+(7, '2023-07-15', null, 0, 'Quá hạn', 4, 2, 5, 1),
+(8, '2023-12-8', null, 0, 'Đang tiến hành', 2, 1, 3, 2);
 
 INSERT INTO reserve_record (rid, rdate, rstatus, borrow_rid, uid, did, pid)
 VALUES

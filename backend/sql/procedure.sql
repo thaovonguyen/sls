@@ -112,7 +112,7 @@ BEGIN
         -- Trả về lỗi không thể gia hạn
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Đã đạt giới hạn gia hạn mượn sách.'
-        SELECT MESSAGE_TEXT as result;
+        
     END IF;
     
 END //

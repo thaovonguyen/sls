@@ -148,7 +148,7 @@ const BookPage = (props) => {
                   setOpen(false);
                 }}
               >
-                Tạo phiếu mượn
+                Đặt trước
               </button>
               <button
                 type="button"

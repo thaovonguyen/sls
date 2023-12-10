@@ -10,12 +10,10 @@ func openDB(DBInfo string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}
-
 	return db, nil
 }
 
@@ -24,7 +22,6 @@ func (app *application) connectToDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	log.Println("Connected to MySQL!")
 	return connection, nil
 }
