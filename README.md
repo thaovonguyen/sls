@@ -83,6 +83,9 @@ go run ./cmd/api
 ## Contributors
 
 Võ Nguyễn Đoan Thảo - 2110546
+
 Lê Phương Các - 2110833
+
 Lê Duy Anh - 2112762
+
 Nguyễn Trần Bảo Ngọc - 2111860
