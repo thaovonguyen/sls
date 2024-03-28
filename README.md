@@ -2,6 +2,8 @@
 
 231 CO2013 - DATABASE SYSTEM
 
+Grade: 10/10
+
 # VERY IMPORTANT NOTE
 
 - Before getting data from the database, make sure the `model` for that data is define in the **_"backend/internal/models"_** folder.
