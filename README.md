@@ -73,3 +73,16 @@ Run the server
 ```bash
 go run ./cmd/api
 ```
+
+## Reports
+
+[Ass1.pdf](https://github.com/thaovonguyen/sls/files/14794969/Ass1_602_Library.pdf)
+
+[Ass2.pdf](https://github.com/thaovonguyen/sls/files/14794971/report.pdf)
+
+## Contributors
+
+Võ Nguyễn Đoan Thảo - 2110546
+Lê Phương Các - 2110833
+Lê Duy Anh - 2112762
+Nguyễn Trần Bảo Ngọc - 2111860
